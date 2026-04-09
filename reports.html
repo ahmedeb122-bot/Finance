@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>التقارير</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #080810;
+    --surface: #10101a;
+    --surface2: #181824;
+    --border: rgba(255,255,255,0.06);
+    --text: #eeeef5;
+    --muted: #5a5a72;
+    --accent: #4f8ef7;
+    --green: #22c55e;
+    --red: #ef4444;
+    --gold: #f59e0b;
+    --purple: #a855f7;
+    --pink: #ec4899;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(79,142,247,0.07) 0%, transparent 45%),
+      radial-gradient(ellipse at 80% 90%, rgba(168,85,247,0.06) 0%, transparent 45%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+  }
+
+  /* رأس الصفحة */
+  .page-header {
+    text-align: center;
+    margin-bottom: 32px;
+    animation: fadeDown 0.5s ease;
+  }
+
+  .page-icon {
+    width: 56px;
+    height: 56px;
+    background: rgba(79,142,247,0.1);
+    border: 1px solid rgba(79,142,247,0.2);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin: 0 auto 16px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .page-sub {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* بطاقة التقرير */
+  .report-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .report-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; left: 0;
+    height: 2px;
+  }
+
+  .card-hadeel::before { background: linear-gradient(90deg, transparent, var(--pink), transparent); }
+  .card-waleed::before { background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+  .card-summary::before { background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .card-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .avatar-hadeel { background: rgba(236,72,153,0.12); }
+  .avatar-waleed { background: rgba(79,142,247,0.12); }
+  .avatar-summary { background: rgba(245,158,11,0.12); }
+
+  .card-info { flex: 1; }
+  .card-name { font-size: 16px; font-weight: 700; margin-bottom: 3px; }
+  .card-desc { font-size: 12px; color: var(--muted); }
+
+  .card-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .badge-manual { background: rgba(168,85,247,0.1); color: var(--purple); border: 1px solid rgba(168,85,247,0.2); }
+  .badge-auto { background: rgba(79,142,247,0.1); color: var(--accent); border: 1px solid rgba(79,142,247,0.2); }
+
+  /* إحصائيات */
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .stat-box {
+    background: var(--surface2);
+    border-radius: 12px;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-size: 16px;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  .stat-val.green { color: var(--green); }
+  .stat-val.red { color: var(--red); }
+  .stat-val.gold { color: var(--gold); }
+  .stat-val.blue { color: var(--accent); }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    display: block;
+  }
+
+  /* قائمة الفواتير العالقة */
+  .pending-list {
+    background: var(--surface2);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 16px;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+
+  .pending-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .pending-item:last-child { border-bottom: none; }
+
+  .pending-amount { font-weight: 600; color: var(--red); }
+  .pending-type { color: var(--muted); font-size: 12px; }
+
+  .no-pending {
+    text-align: center;
+    padding: 16px;
+    color: var(--green);
+    font-size: 13px;
+  }
+
+  /* أزرار */
+  .btn-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .btn-row.single { grid-template-columns: 1fr; }
+
+  .action-btn {
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .action-btn:active { transform: scale(0.97); }
+
+  .btn-whatsapp {
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    color: white;
+  }
+
+  .btn-refresh {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-sheets {
+    background: rgba(245,158,11,0.1);
+    color: var(--gold);
+    border: 1px solid rgba(245,158,11,0.2);
+  }
+
+  /* رابط الشيت */
+  .sheets-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.2s;
+    animation: fadeUp 0.5s ease 0.4s both;
+  }
+
+  .sheets-link:active { transform: scale(0.98); }
+
+  .sheets-icon {
+    width: 36px;
+    height: 36px;
+    background: rgba(34,197,94,0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .sheets-text { flex: 1; }
+  .sheets-name { font-size: 14px; font-weight: 600; display: block; }
+  .sheets-sub { font-size: 11px; color: var(--muted); }
+
+  /* تصنيف رابط */
+  .classify-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, rgba(79,142,247,0.1), rgba(124,58,237,0.1));
+    border: 1px solid rgba(79,142,247,0.2);
+    border-radius: 12px;
+    padding: 14px 16px;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.2s;
+    animation: fadeUp 0.5s ease 0.5s both;
+  }
+
+  .classify-link:active { transform: scale(0.98); }
+
+  /* Loading */
+  .loading {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(8,8,16,0.85);
+    z-index: 99;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .loading.show { display: flex; }
+
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .loading-text { font-size: 14px; color: var(--muted); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 100;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- رأس الصفحة -->
+  <div class="page-header">
+    <div class="page-icon">📊</div>
+    <div class="page-title">التقارير والملخصات</div>
+    <div class="page-sub">بيانات محدّثة من Google Sheets</div>
+  </div>
+
+  <!-- بطاقة هديل -->
+  <div class="report-card card-hadeel" style="animation-delay:0.1s">
+    <div class="card-header">
+      <div class="card-avatar avatar-hadeel">🌸</div>
+      <div class="card-info">
+        <div class="card-name">هديل</div>
+        <div class="card-desc">ملخص الإيرادات والمصروفات</div>
+      </div>
+      <span class="card-badge badge-manual">يدوي</span>
+    </div>
+
+    <div class="stats-row" id="hadeelStats">
+      <div class="stat-box">
+        <span class="stat-val green" id="hadeelIn">—</span>
+        <span class="stat-label">وارد</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-val red" id="hadeelOut">—</span>
+        <span class="stat-label">صادر</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-val gold" id="hadeelBal">—</span>
+        <span class="stat-label">الرصيد</span>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="action-btn btn-whatsapp" onclick="sendHadeelWhatsApp()">
+        <span>📱</span> إرسال لهديل
+      </button>
+      <button class="action-btn btn-refresh" onclick="loadData()">
+        <span>🔄</span> تحديث
+      </button>
+    </div>
+  </div>
+
+  <!-- بطاقة وليد -->
+  <div class="report-card card-waleed" style="animation-delay:0.2s">
+    <div class="card-header">
+      <div class="card-avatar avatar-waleed">🚗</div>
+      <div class="card-info">
+        <div class="card-name">وليد — SAB</div>
+        <div class="card-desc">الفواتير العالقة والمصروفات</div>
+      </div>
+      <span class="card-badge badge-auto">أسبوعي</span>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box">
+        <span class="stat-val blue" id="waleedTotal">—</span>
+        <span class="stat-label">إجمالي</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-val red" id="waleedPending">—</span>
+        <span class="stat-label">عالقة</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-val green" id="waleedDone">—</span>
+        <span class="stat-label">مكتملة</span>
+      </div>
+    </div>
+
+    <div class="pending-list" id="waleedList">
+      <div class="no-pending">⏳ جارٍ التحميل...</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="action-btn btn-whatsapp" onclick="sendWaleedWhatsApp()">
+        <span>📱</span> تذكير وليد
+      </button>
+      <button class="action-btn btn-refresh" onclick="loadData()">
+        <span>🔄</span> تحديث
+      </button>
+    </div>
+  </div>
+
+  <!-- روابط سريعة -->
+  <a href="https://docs.google.com/spreadsheets/d/1AdCuCBpFwabqlokv-GXEarahJAPKPcbzDLuSMzYUyxk/edit" 
+     target="_blank" class="sheets-link">
+    <div class="sheets-icon">📋</div>
+    <div class="sheets-text">
+      <span class="sheets-name">فتح Google Sheets</span>
+      <span class="sheets-sub">عرض كل البيانات والتقارير</span>
+    </div>
+    <span style="color:var(--muted)">←</span>
+  </a>
+
+  <a href="https://ahmedeb122-bot.github.io/Finance/classify.html" 
+     class="classify-link">
+    <div class="sheets-icon" style="background:rgba(79,142,247,0.1)">💰</div>
+    <div class="sheets-text">
+      <span class="sheets-name">تصنيف معاملة يدوياً</span>
+      <span class="sheets-sub">إضافة معاملة فائتة</span>
+    </div>
+    <span style="color:var(--muted)">←</span>
+  </a>
+
+</div>
+
+<!-- Loading -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">جارٍ تحميل البيانات...</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// الإعدادات
+// ============================================================
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwEUy2lH16wDemFMxJ7WSzN9sA2gfsT9UnUjNVRZCV67M1RsYtA0abMD4GQCmacomXN/exec";
+const SHEETS_ID = "1AdCuCBpFwabqlokv-GXEarahJAPKPcbzDLuSMzYUyxk";
+
+const HADEEL_PHONE = "249998451318";
+const WALEED_PHONE = "966539635310";
+
+// بيانات محلية
+let hadeelData = { totalIn: 0, totalOut: 0, items: [] };
+let waleedData = { total: 0, pending: [], done: 0 };
+
+// ============================================================
+// تحميل البيانات من Web App
+// ============================================================
+async function loadData() {
+  document.getElementById('loading').classList.add('show');
+
+  try {
+    const res = await fetch(WEBAPP_URL + "?action=getReport", {
+      method: "GET",
+      mode: "no-cors"
+    });
+
+    // بما أن no-cors لا يرجع بيانات، نعرض رسالة توجيه
+    document.getElementById('loading').classList.remove('show');
+    showToast("📊 افتح Sheets لعرض البيانات المحدّثة");
+    loadMockData();
+
+  } catch(e) {
+    document.getElementById('loading').classList.remove('show');
+    loadMockData();
+  }
+}
+
+// بيانات تجريبية للعرض
+function loadMockData() {
+  document.getElementById('hadeelIn').textContent = "—";
+  document.getElementById('hadeelOut').textContent = "—";
+  document.getElementById('hadeelBal').textContent = "—";
+  document.getElementById('waleedTotal').textContent = "—";
+  document.getElementById('waleedPending').textContent = "—";
+  document.getElementById('waleedDone').textContent = "—";
+  document.getElementById('waleedList').innerHTML =
+    '<div class="no-pending">افتح Sheets لعرض التفاصيل</div>';
+}
+
+// ============================================================
+// إرسال ملخص هديل
+// ============================================================
+function sendHadeelWhatsApp() {
+  const today = new Date().toLocaleDateString("ar-SA");
+
+  const msg = "📊 *ملخص حسابك يا هديل*\n"
+    + "📅 " + today + "\n\n"
+    + "للاطلاع على تفاصيل حسابك، يرجى التواصل.\n\n"
+    + "_تم الإرسال من نظام المالية_";
+
+  openWhatsApp(HADEEL_PHONE, msg);
+}
+
+// ============================================================
+// إرسال تذكير وليد
+// ============================================================
+function sendWaleedWhatsApp() {
+  const today = new Date().toLocaleDateString("ar-SA");
+
+  const msg = "⚠️ *تذكير فواتير عالقة*\n"
+    + "📅 " + today + "\n\n"
+    + "وليد، لديك فواتير لم تسلّمها بعد.\n"
+    + "يرجى تسليم الفواتير في أقرب وقت.\n\n"
+    + "_نظام المالية الآلي_";
+
+  openWhatsApp(WALEED_PHONE, msg);
+}
+
+function openWhatsApp(phone, msg) {
+  const url = "https://wa.me/" + phone + "?text=" + encodeURIComponent(msg);
+  window.open(url, '_blank');
+  showToast("✅ جارٍ فتح واتساب...");
+}
+
+// ============================================================
+// Toast
+// ============================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// تحميل عند الفتح
+window.addEventListener('load', loadMockData);
+</script>
+</body>
+</html>
